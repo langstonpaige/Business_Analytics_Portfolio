@@ -1,0 +1,915 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .dashboard-container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-info h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .header-info p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .filter-group select {
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #fd7e14;
+        }
+
+        .inventory-alerts {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .alerts-header {
+            background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alerts-content {
+            padding: 15px 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .alert-item {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert-critical {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .kpi-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .kpi-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .kpi-change {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .positive {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .inventory-table {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);
+            color: white;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            font-size: 0.9rem;
+            width: 250px;
+        }
+
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .table-content {
+            padding: 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .stock-level {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stock-bar {
+            width: 60px;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .stock-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .stock-high {
+            background: #28a745;
+        }
+
+        .stock-medium {
+            background: #ffc107;
+        }
+
+        .stock-low {
+            background: #dc3545;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-in-stock {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-low-stock {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-out-of-stock {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .forecast-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .forecast-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="header-info">
+                <h1><i class="fas fa-boxes"></i> Inventory Management Dashboard</h1>
+                <p>Real-time inventory tracking and demand forecasting for CPG products</p>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 0.9rem; opacity: 0.8;">Last Updated</div>
+                <div style="font-weight: 600;" id="lastUpdated"></div>
+            </div>
+        </div>
+
+        <div class="inventory-alerts">
+            <div class="alerts-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                Inventory Alerts
+            </div>
+            <div class="alerts-content">
+                <div class="alert-item alert-critical">
+                    <i class="fas fa-times-circle"></i>
+                    3 items out of stock
+                </div>
+                <div class="alert-item alert-warning">
+                    <i class="fas fa-exclamation-circle"></i>
+                    12 items below reorder point
+                </div>
+                <div class="alert-item alert-warning">
+                    <i class="fas fa-clock"></i>
+                    5 items expiring within 30 days
+                </div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>Warehouse</label>
+                <select id="warehouse" onchange="updateInventory()">
+                    <option value="all">All Warehouses</option>
+                    <option value="main">Main Warehouse</option>
+                    <option value="east">East Coast DC</option>
+                    <option value="west">West Coast DC</option>
+                    <option value="central">Central DC</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Product Category</label>
+                <select id="category" onchange="updateInventory()">
+                    <option value="all">All Categories</option>
+                    <option value="beverages">Beverages</option>
+                    <option value="snacks">Snacks</option>
+                    <option value="dairy">Dairy Products</option>
+                    <option value="frozen">Frozen Foods</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Stock Status</label>
+                <select id="stockStatus" onchange="updateInventory()">
+                    <option value="all">All Status</option>
+                    <option value="in-stock">In Stock</option>
+                    <option value="low-stock">Low Stock</option>
+                    <option value="out-of-stock">Out of Stock</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-cubes"></i></div>
+                <div class="kpi-value" id="totalItems">2,847</div>
+                <div class="kpi-label">Total SKUs</div>
+                <div class="kpi-change positive">+23 new items</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-dollar-sign"></i></div>
+                <div class="kpi-value" id="inventoryValue">$8.2M</div>
+                <div class="kpi-label">Inventory Value</div>
+                <div class="kpi-change positive">+5.2% vs last month</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-sync-alt"></i></div>
+                <div class="kpi-value" id="turnoverRate">4.2x</div>
+                <div class="kpi-label">Turnover Rate</div>
+                <div class="kpi-change positive">+0.3x vs last quarter</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-calendar-day"></i></div>
+                <div class="kpi-value" id="daysOnHand">87</div>
+                <div class="kpi-label">Days on Hand</div>
+                <div class="kpi-change negative">+5 days vs target</div>
+            </div>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-chart-line"></i>
+                    Inventory Levels Trend
+                </div>
+                <canvas id="inventoryTrendChart" width="400" height="200"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-chart-pie"></i>
+                    Stock Status Distribution
+                </div>
+                <canvas id="stockStatusChart" width="300" height="200"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Top Categories by Value
+                </div>
+                <canvas id="categoryValueChart" width="400" height="200"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-warehouse"></i>
+                    Warehouse Utilization
+                </div>
+                <canvas id="warehouseChart" width="300" height="200"></canvas>
+            </div>
+        </div>
+
+        <div class="inventory-table">
+            <div class="table-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-table"></i>
+                    Inventory Details
+                </div>
+                <input type="text" class="search-box" placeholder="Search products..." id="searchBox" onkeyup="filterTable()">
+            </div>
+            <div class="table-content">
+                <table id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>SKU</th>
+                            <th>Category</th>
+                            <th>Current Stock</th>
+                            <th>Stock Level</th>
+                            <th>Reorder Point</th>
+                            <th>Unit Cost</th>
+                            <th>Total Value</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Premium Cola 12oz</td>
+                            <td>BEV-001</td>
+                            <td>Beverages</td>
+                            <td>1,250</td>
+                            <td>
+                                <div class="stock-level">
+                                    <div class="stock-bar">
+                                        <div class="stock-fill stock-high" style="width: 85%"></div>
+                                    </div>
+                                    85%
+                                </div>
+                            </td>
+                            <td>200</td>
+                            <td>$2.45</td>
+                            <td>$3,062.50</td>
+                            <td><span class="status-badge status-in-stock">In Stock</span></td>
+                        </tr>
+                        <tr>
+                            <td>Organic Chips Family Size</td>
+                            <td>SNK-045</td>
+                            <td>Snacks</td>
+                            <td>85</td>
+                            <td>
+                                <div class="stock-level">
+                                    <div class="stock-bar">
+                                        <div class="stock-fill stock-low" style="width: 25%"></div>
+                                    </div>
+                                    25%
+                                </div>
+                            </td>
+                            <td>100</td>
+                            <td>$4.20</td>
+                            <td>$357.00</td>
+                            <td><span class="status-badge status-low-stock">Low Stock</span></td>
+                        </tr>
+                        <tr>
+                            <td>Greek Yogurt 32oz</td>
+                            <td>DAI-023</td>
+                            <td>Dairy</td>
+                            <td>0</td>
+                            <td>
+                                <div class="stock-level">
+                                    <div class="stock-bar">
+                                        <div class="stock-fill stock-low" style="width: 0%"></div>
+                                    </div>
+                                    0%
+                                </div>
+                            </td>
+                            <td>50</td>
+                            <td>$6.80</td>
+                            <td>$0.00</td>
+                            <td><span class="status-badge status-out-of-stock">Out of Stock</span></td>
+                        </tr>
+                        <tr>
+                            <td>Frozen Pizza Supreme</td>
+                            <td>FRZ-012</td>
+                            <td>Frozen</td>
+                            <td>320</td>
+                            <td>
+                                <div class="stock-level">
+                                    <div class="stock-bar">
+                                        <div class="stock-fill stock-medium" style="width: 65%"></div>
+                                    </div>
+                                    65%
+                                </div>
+                            </td>
+                            <td>75</td>
+                            <td>$8.95</td>
+                            <td>$2,864.00</td>
+                            <td><span class="status-badge status-in-stock">In Stock</span></td>
+                        </tr>
+                        <tr>
+                            <td>Energy Drink 16oz</td>
+                            <td>BEV-078</td>
+                            <td>Beverages</td>
+                            <td>45</td>
+                            <td>
+                                <div class="stock-level">
+                                    <div class="stock-bar">
+                                        <div class="stock-fill stock-low" style="width: 30%"></div>
+                                    </div>
+                                    30%
+                                </div>
+                            </td>
+                            <td>60</td>
+                            <td>$3.25</td>
+                            <td>$146.25</td>
+                            <td><span class="status-badge status-low-stock">Low Stock</span></td>
+                        </tr>
+                        <tr>
+                            <td>Artisan Crackers</td>
+                            <td>SNK-089</td>
+                            <td>Snacks</td>
+                            <td>890</td>
+                            <td>
+                                <div class="stock-level">
+                                    <div class="stock-bar">
+                                        <div class="stock-fill stock-high" style="width: 90%"></div>
+                                    </div>
+                                    90%
+                                </div>
+                            </td>
+                            <td>150</td>
+                            <td>$5.50</td>
+                            <td>$4,895.00</td>
+                            <td><span class="status-badge status-in-stock">In Stock</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="forecast-section" style="margin-top: 20px;">
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-crystal-ball"></i>
+                    Demand Forecast (Next 12 Weeks)
+                </div>
+                <canvas id="demandForecastChart" width="400" height="200"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-truck"></i>
+                    Upcoming Deliveries
+                </div>
+                <div style="margin-top: 20px;">
+                    <div style="padding: 15px; border-left: 4px solid #28a745; background: #f8f9fa; margin-bottom: 10px; border-radius: 0 8px 8px 0;">
+                        <div style="font-weight: 600; color: #28a745;">Tomorrow</div>
+                        <div style="font-size: 0.9rem; color: #666;">Beverages Shipment - 2,500 units</div>
+                    </div>
+                    <div style="padding: 15px; border-left: 4px solid #ffc107; background: #f8f9fa; margin-bottom: 10px; border-radius: 0 8px 8px 0;">
+                        <div style="font-weight: 600; color: #856404;">Dec 5</div>
+                        <div style="font-size: 0.9rem; color: #666;">Snacks Restock - 1,800 units</div>
+                    </div>
+                    <div style="padding: 15px; border-left: 4px solid #17a2b8; background: #f8f9fa; margin-bottom: 10px; border-radius: 0 8px 8px 0;">
+                        <div style="font-weight: 600; color: #0c5460;">Dec 8</div>
+                        <div style="font-size: 0.9rem; color: #666;">Dairy Products - 950 units</div>
+                    </div>
+                    <div style="padding: 15px; border-left: 4px solid #6f42c1; background: #f8f9fa; border-radius: 0 8px 8px 0;">
+                        <div style="font-weight: 600; color: #493267;">Dec 12</div>
+                        <div style="font-size: 0.9rem; color: #666;">Frozen Foods - 1,200 units</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update timestamp
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+
+        // Inventory Trend Chart
+        const inventoryTrendCtx = document.getElementById('inventoryTrendChart').getContext('2d');
+        const inventoryTrendChart = new Chart(inventoryTrendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                datasets: [{
+                    label: 'Total Units',
+                    data: [45000, 43500, 46200, 44800, 47500, 45900, 48200, 46700],
+                    borderColor: '#fd7e14',
+                    backgroundColor: 'rgba(253, 126, 20, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Stock Status Chart
+        const stockStatusCtx = document.getElementById('stockStatusChart').getContext('2d');
+        const stockStatusChart = new Chart(stockStatusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['In Stock', 'Low Stock', 'Out of Stock'],
+                datasets: [{
+                    data: [75, 20, 5],
+                    backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Category Value Chart
+        const categoryValueCtx = document.getElementById('categoryValueChart').getContext('2d');
+        const categoryValueChart = new Chart(categoryValueCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Beverages', 'Snacks', 'Dairy', 'Frozen', 'Other'],
+                datasets: [{
+                    label: 'Value ($000)',
+                    data: [2800, 2200, 1800, 1100, 500],
+                    backgroundColor: ['#fd7e14', '#e83e8c', '#6f42c1', '#20c997', '#6c757d'],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Warehouse Utilization Chart
+        const warehouseCtx = document.getElementById('warehouseChart').getContext('2d');
+        const warehouseChart = new Chart(warehouseCtx, {
+            type: 'horizontalBar',
+            data: {
+                labels: ['Main WH', 'East DC', 'West DC', 'Central DC'],
+                datasets: [{
+                    label: 'Utilization %',
+                    data: [85, 72, 68, 91],
+                    backgroundColor: ['#fd7e14', '#e83e8c', '#6f42c1', '#20c997'],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Demand Forecast Chart
+        const demandForecastCtx = document.getElementById('demandForecastChart').getContext('2d');
+        const demandForecastChart = new Chart(demandForecastCtx, {
+            type: 'line',
+            data: {
+                labels: ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10', 'W11', 'W12'],
+                datasets: [{
+                    label: 'Historical Demand',
+                    data: [3200, 3100, 3400, 3300, 3500, 3200, null, null, null, null, null, null],
+                    borderColor: '#6c757d',
+                    backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                    borderWidth: 2,
+                    fill: false
+                }, {
+                    label: 'Forecasted Demand',
+                    data: [null, null, null, null, null, 3200, 3350, 3400, 3250, 3500, 3300, 3450],
+                    borderColor: '#fd7e14',
+                    backgroundColor: 'rgba(253, 126, 20, 0.1)',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        function updateInventory() {
+            // Simulate data updates based on filters
+            const warehouse = document.getElementById('warehouse').value;
+            const category = document.getElementById('category').value;
+            const stockStatus = document.getElementById('stockStatus').value;
+
+            // Update KPIs with simulated data
+            const baseSKUs = 2847;
+            const multiplier = Math.random() * 0.2 + 0.9; // 0.9 to 1.1
+            
+            document.getElementById('totalItems').textContent = 
+                Math.round(baseSKUs * multiplier).toLocaleString();
+            
+            document.getElementById('inventoryValue').textContent = 
+                '$' + (8.2 * multiplier).toFixed(1) + 'M';
+            
+            document.getElementById('turnoverRate').textContent = 
+                (4.2 * multiplier).toFixed(1) + 'x';
+            
+            document.getElementById('daysOnHand').textContent = 
+                Math.round(87 / multiplier);
+
+            // Update timestamp
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+        }
+
+        function filterTable() {
+            const input = document.getElementById('searchBox');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('inventoryTable');
+            const rows = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                let found = false;
+                
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().indexOf(filter) > -1) {
+                        found = true;
+                        break;
+                    }
+                }
+                
+                rows[i].style.display = found ? '' : 'none';
+            }
+        }
+
+        // Simulate real-time updates
+        setInterval(() => {
+            const stockBars = document.querySelectorAll('.stock-fill');
+            stockBars.forEach(bar => {
+                if (Math.random() > 0.9) { // 10% chance of update
+                    const currentWidth = parseInt(bar.style.width);
+                    const newWidth = Math.max(0, Math.min(100, currentWidth + (Math.random() - 0.5) * 10));
+                    bar.style.width = newWidth + '%';
+                    
+                    // Update color based on new width
+                    bar.className = 'stock-fill ' + 
+                        (newWidth > 60 ? 'stock-high' : 
+                         newWidth > 30 ? 'stock-medium' : 'stock-low');
+                }
+            });
+        }, 10000);
+    </script>
+</body>
+</html>

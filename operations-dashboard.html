@@ -1,0 +1,894 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operations Excellence Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .dashboard-container {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-info h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .header-info p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .filter-group select {
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-group select:focus {
+            outline: none;
+            border-color: #17a2b8;
+        }
+
+        .operations-alerts {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .alerts-header {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alerts-content {
+            padding: 15px 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .alert-item {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .kpi-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .kpi-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .kpi-change {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .positive {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .supply-chain-table {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+            color: white;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .table-content {
+            padding: 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-on-time {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-delayed {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-critical {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .performance-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .indicator-bar {
+            width: 60px;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .indicator-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .performance-excellent {
+            background: #28a745;
+        }
+
+        .performance-good {
+            background: #ffc107;
+        }
+
+        .performance-poor {
+            background: #dc3545;
+        }
+
+        .quality-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quality-metrics {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .dashboard-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <div class="header-info">
+                <h1><i class="fas fa-cogs"></i> Operations Excellence Dashboard</h1>
+                <p>Supply chain visibility, distribution performance, and quality control metrics</p>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 0.9rem; opacity: 0.8;">Last Updated</div>
+                <div style="font-weight: 600;" id="lastUpdated"></div>
+            </div>
+        </div>
+
+        <div class="operations-alerts">
+            <div class="alerts-header">
+                <i class="fas fa-bell"></i>
+                Operations Status
+            </div>
+            <div class="alerts-content">
+                <div class="alert-item alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    All production lines operational
+                </div>
+                <div class="alert-item alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    2 shipments delayed due to weather
+                </div>
+                <div class="alert-item alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    Quality audit scheduled for next week
+                </div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>Time Period</label>
+                <select id="timePeriod" onchange="updateOperations()">
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="quarter">This Quarter</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Facility</label>
+                <select id="facility" onchange="updateOperations()">
+                    <option value="all">All Facilities</option>
+                    <option value="plant-1">Production Plant 1</option>
+                    <option value="plant-2">Production Plant 2</option>
+                    <option value="dc-east">East Distribution Center</option>
+                    <option value="dc-west">West Distribution Center</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Product Line</label>
+                <select id="productLine" onchange="updateOperations()">
+                    <option value="all">All Product Lines</option>
+                    <option value="beverages">Beverages</option>
+                    <option value="snacks">Snacks</option>
+                    <option value="dairy">Dairy Products</option>
+                    <option value="frozen">Frozen Foods</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-industry"></i></div>
+                <div class="kpi-value" id="oee">87.3%</div>
+                <div class="kpi-label">Overall Equipment Effectiveness</div>
+                <div class="kpi-change positive">+2.1% vs last period</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-shipping-fast"></i></div>
+                <div class="kpi-value" id="onTimeDelivery">94.7%</div>
+                <div class="kpi-label">On-Time Delivery</div>
+                <div class="kpi-change positive">+1.8% vs last period</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-award"></i></div>
+                <div class="kpi-value" id="qualityScore">98.2%</div>
+                <div class="kpi-label">Quality Score</div>
+                <div class="kpi-change positive">+0.5% vs last period</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-dollar-sign"></i></div>
+                <div class="kpi-value" id="costPerUnit">$2.34</div>
+                <div class="kpi-label">Cost Per Unit</div>
+                <div class="kpi-change negative">+$0.08 vs last period</div>
+            </div>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-chart-line"></i>
+                    Production Efficiency Trend
+                </div>
+                <canvas id="efficiencyChart" width="400" height="200"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-chart-pie"></i>
+                    Downtime Analysis
+                </div>
+                <canvas id="downtimeChart" width="300" height="200"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-truck"></i>
+                    Distribution Performance
+                </div>
+                <canvas id="distributionChart" width="400" height="200"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Quality Control Metrics
+                </div>
+                <div class="quality-metrics">
+                    <div class="metric-card">
+                        <div class="metric-value">99.1%</div>
+                        <div class="metric-label">First Pass Yield</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0.8%</div>
+                        <div class="metric-label">Defect Rate</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">2.3</div>
+                        <div class="metric-label">Customer Complaints (per 1000)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">99.7%</div>
+                        <div class="metric-label">Compliance Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="supply-chain-table">
+            <div class="table-header">
+                <i class="fas fa-table"></i> Supply Chain Performance
+            </div>
+            <div class="table-content">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Supplier</th>
+                            <th>Product Category</th>
+                            <th>Lead Time</th>
+                            <th>On-Time Delivery</th>
+                            <th>Quality Rating</th>
+                            <th>Cost Performance</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Premium Ingredients Co.</td>
+                            <td>Beverages</td>
+                            <td>5 days</td>
+                            <td>
+                                <div class="performance-indicator">
+                                    <div class="indicator-bar">
+                                        <div class="indicator-fill performance-excellent" style="width: 96%"></div>
+                                    </div>
+                                    96%
+                                </div>
+                            </td>
+                            <td>A+</td>
+                            <td>-2.3%</td>
+                            <td><span class="status-badge status-on-time">On Track</span></td>
+                        </tr>
+                        <tr>
+                            <td>Fresh Dairy Suppliers</td>
+                            <td>Dairy</td>
+                            <td>3 days</td>
+                            <td>
+                                <div class="performance-indicator">
+                                    <div class="indicator-bar">
+                                        <div class="indicator-fill performance-excellent" style="width: 98%"></div>
+                                    </div>
+                                    98%
+                                </div>
+                            </td>
+                            <td>A</td>
+                            <td>+1.2%</td>
+                            <td><span class="status-badge status-on-time">On Track</span></td>
+                        </tr>
+                        <tr>
+                            <td>Snack Manufacturing Ltd.</td>
+                            <td>Snacks</td>
+                            <td>7 days</td>
+                            <td>
+                                <div class="performance-indicator">
+                                    <div class="indicator-bar">
+                                        <div class="indicator-fill performance-good" style="width: 85%"></div>
+                                    </div>
+                                    85%
+                                </div>
+                            </td>
+                            <td>B+</td>
+                            <td>+3.8%</td>
+                            <td><span class="status-badge status-delayed">Delayed</span></td>
+                        </tr>
+                        <tr>
+                            <td>Frozen Foods Corp.</td>
+                            <td>Frozen</td>
+                            <td>10 days</td>
+                            <td>
+                                <div class="performance-indicator">
+                                    <div class="indicator-bar">
+                                        <div class="indicator-fill performance-excellent" style="width: 92%"></div>
+                                    </div>
+                                    92%
+                                </div>
+                            </td>
+                            <td>A-</td>
+                            <td>-0.5%</td>
+                            <td><span class="status-badge status-on-time">On Track</span></td>
+                        </tr>
+                        <tr>
+                            <td>Packaging Solutions Inc.</td>
+                            <td>Packaging</td>
+                            <td>4 days</td>
+                            <td>
+                                <div class="performance-indicator">
+                                    <div class="indicator-bar">
+                                        <div class="indicator-fill performance-poor" style="width: 72%"></div>
+                                    </div>
+                                    72%
+                                </div>
+                            </td>
+                            <td>C+</td>
+                            <td>+5.2%</td>
+                            <td><span class="status-badge status-critical">Critical</span></td>
+                        </tr>
+                        <tr>
+                            <td>Logistics Partners LLC</td>
+                            <td>Transportation</td>
+                            <td>2 days</td>
+                            <td>
+                                <div class="performance-indicator">
+                                    <div class="indicator-bar">
+                                        <div class="indicator-fill performance-excellent" style="width: 94%"></div>
+                                    </div>
+                                    94%
+                                </div>
+                            </td>
+                            <td>A</td>
+                            <td>-1.8%</td>
+                            <td><span class="status-badge status-on-time">On Track</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Capacity Utilization by Facility
+                </div>
+                <canvas id="capacityChart" width="400" height="200"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Safety & Compliance Metrics
+                </div>
+                <div style="margin-top: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+                        <span style="font-weight: 600;">Days Without Incident</span>
+                        <span style="font-size: 1.5rem; font-weight: bold; color: #28a745;">127</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+                        <span style="font-weight: 600;">Safety Training Completion</span>
+                        <span style="font-size: 1.5rem; font-weight: bold; color: #17a2b8;">98.5%</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-radius: 8px; margin-bottom: 10px;">
+                        <span style="font-weight: 600;">Environmental Compliance</span>
+                        <span style="font-size: 1.5rem; font-weight: bold; color: #28a745;">100%</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <span style="font-weight: 600;">Audit Score</span>
+                        <span style="font-size: 1.5rem; font-weight: bold; color: #ffc107;">92.3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update timestamp
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+
+        // Production Efficiency Chart
+        const efficiencyCtx = document.getElementById('efficiencyChart').getContext('2d');
+        const efficiencyChart = new Chart(efficiencyCtx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                datasets: [{
+                    label: 'OEE %',
+                    data: [84.2, 86.1, 85.8, 87.3, 88.1, 86.9, 89.2, 87.3],
+                    borderColor: '#17a2b8',
+                    backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Target %',
+                    data: [85, 85, 85, 85, 85, 85, 85, 85],
+                    borderColor: '#28a745',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 80,
+                        max: 95,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Downtime Analysis Chart
+        const downtimeCtx = document.getElementById('downtimeChart').getContext('2d');
+        const downtimeChart = new Chart(downtimeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Planned Maintenance', 'Equipment Failure', 'Material Shortage', 'Quality Issues', 'Other'],
+                datasets: [{
+                    data: [45, 25, 15, 10, 5],
+                    backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#fd7e14', '#6c757d'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Distribution Performance Chart
+        const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+        const distributionChart = new Chart(distributionCtx, {
+            type: 'bar',
+            data: {
+                labels: ['East DC', 'West DC', 'Central DC', 'South DC'],
+                datasets: [{
+                    label: 'On-Time Delivery %',
+                    data: [96.2, 94.7, 92.8, 95.1],
+                    backgroundColor: ['#17a2b8', '#20c997', '#6f42c1', '#e83e8c'],
+                    borderRadius: 8
+                }, {
+                    label: 'Target %',
+                    data: [95, 95, 95, 95],
+                    type: 'line',
+                    borderColor: '#28a745',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 90,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // Capacity Utilization Chart
+        const capacityCtx = document.getElementById('capacityChart').getContext('2d');
+        const capacityChart = new Chart(capacityCtx, {
+            type: 'horizontalBar',
+            data: {
+                labels: ['Plant 1', 'Plant 2', 'East DC', 'West DC', 'Central DC'],
+                datasets: [{
+                    label: 'Utilization %',
+                    data: [87, 92, 78, 85, 89],
+                    backgroundColor: ['#17a2b8', '#20c997', '#6f42c1', '#e83e8c', '#fd7e14'],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        function updateOperations() {
+            // Simulate data updates based on filters
+            const timePeriod = document.getElementById('timePeriod').value;
+            const facility = document.getElementById('facility').value;
+            const productLine = document.getElementById('productLine').value;
+
+            // Update KPIs with simulated data
+            const baseOEE = 87.3;
+            const multiplier = Math.random() * 0.1 + 0.95; // 0.95 to 1.05
+            
+            document.getElementById('oee').textContent = 
+                (baseOEE * multiplier).toFixed(1) + '%';
+            
+            document.getElementById('onTimeDelivery').textContent = 
+                (94.7 * multiplier).toFixed(1) + '%';
+            
+            document.getElementById('qualityScore').textContent = 
+                (98.2 * multiplier).toFixed(1) + '%';
+            
+            document.getElementById('costPerUnit').textContent = 
+                '$' + (2.34 / multiplier).toFixed(2);
+
+            // Update timestamp
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+        }
+
+        // Simulate real-time updates
+        setInterval(() => {
+            const indicators = document.querySelectorAll('.indicator-fill');
+            indicators.forEach(indicator => {
+                if (Math.random() > 0.9) { // 10% chance of update
+                    const currentWidth = parseInt(indicator.style.width);
+                    const newWidth = Math.max(60, Math.min(100, currentWidth + (Math.random() - 0.5) * 5));
+                    indicator.style.width = newWidth + '%';
+                    
+                    // Update color based on new width
+                    indicator.className = 'indicator-fill ' + 
+                        (newWidth > 90 ? 'performance-excellent' : 
+                         newWidth > 75 ? 'performance-good' : 'performance-poor');
+                }
+            });
+        }, 15000);
+
+        // Simulate KPI updates
+        setInterval(() => {
+            const elements = document.querySelectorAll('.kpi-value');
+            elements.forEach(el => {
+                if (Math.random() > 0.9) { // 10% chance of update
+                    el.style.animation = 'pulse 0.5s ease-in-out';
+                    setTimeout(() => {
+                        el.style.animation = '';
+                    }, 500);
+                }
+            });
+        }, 10000);
+    </script>
+
+    <style>
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</body>
+</html>
